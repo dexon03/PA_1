@@ -9,6 +9,10 @@ board.GenerateBoard();
 board.OutPut();
 Console.WriteLine("--------------------------");
 var beginState = new State(board,null,null,0);
+int iterations;
+int angles;
+int countOfState;
+
 Console.Write("Choose algorithm 1 - LDFS, 2 - A* :");
 int var;
 do
@@ -22,27 +26,37 @@ if (var == 1)
     Console.Write("Choose limit for LDFS: ");
     int limit = Int32.Parse(Console.ReadLine());
     
-    State? state = LDFS.Solve(beginState,limit);
+    State? state = LDFS.Solve(beginState,limit,out iterations,out angles,out countOfState);
     if (state != null)
     {
         state.Board.OutPut();
+        var path = FunctionsAndConstants.FindPath(state);
+        Console.WriteLine("Count of states in memory: " + path.Count);
     }
     else
     {
         Console.WriteLine("Cutoff/failure");
     }
+    Console.WriteLine("Count of iterations: " + iterations);
+    Console.WriteLine("Count of angles: " + angles);
+    Console.WriteLine("Count of states: " + countOfState);
 }
 else
 { 
-    State? state = AStar.Solve(beginState);
+    State? state = AStar.Solve(beginState,out iterations,out angles,out countOfState);
     if (state != null)
     {
         state.Board.OutPut();
+        var path = FunctionsAndConstants.FindPath(state);
+        Console.WriteLine("Count of states in memory: " + path.Count);
     }
     else
     {
         Console.Write("Not found");
     }
+    Console.WriteLine("Count of iterations: " + iterations);
+    Console.WriteLine("Count of angles: " + angles);
+    Console.WriteLine("Count of states: " + countOfState);
 }
 // State? state = AStar.Solve(beginState);
 // if (state != null)

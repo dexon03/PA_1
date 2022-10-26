@@ -59,18 +59,6 @@ public static class FunctionsAndConstants
             upState.F = upState.GetF();
             children.Add(upState);
         }
-
-        // if (state.Parent != null)
-        // {
-        //     foreach (var child in children)
-        //     {
-        //         if (state.Parent.Board.Matrix == child.Board.Matrix)
-        //         {
-        //             children.Remove(child);
-        //         }
-        //     }
-        // }
         return children;
-        
     }
 }
