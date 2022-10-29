@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Lab2;
+﻿using Lab2;
 
 // int[,] test = new int[,] { { 9, 2, 3 }, 
 //                            { 1, 4, 5 }, 
@@ -12,6 +11,7 @@ var beginState = new State(board,null,null,0);
 int iterations;
 int angles;
 int countOfState;
+int stateInMemory;
 
 Console.Write("Choose algorithm 1 - LDFS, 2 - A* :");
 int var;
@@ -43,48 +43,17 @@ if (var == 1)
 }
 else
 { 
-    State? state = AStar.Solve(beginState,out iterations,out angles,out countOfState);
+    State? state = AStar.Solve(beginState,out iterations,out angles,out countOfState,out stateInMemory);
     if (state != null)
     {
         state.Board.OutPut();
-        var path = FunctionsAndConstants.FindPath(state);
-        Console.WriteLine("Count of states in memory: " + path.Count);
     }
     else
     {
         Console.Write("Not found");
     }
+    Console.WriteLine("Count of states in memory: " + stateInMemory);
     Console.WriteLine("Count of iterations: " + iterations);
     Console.WriteLine("Count of angles: " + angles);
     Console.WriteLine("Count of states: " + countOfState);
 }
-// State? state = AStar.Solve(beginState);
-// if (state != null)
-// {
-//     state.Board.OutPut();
-// }
-//
-// Console.WriteLine("null");
-// State? state = LDFS.Solve(beginState,22);
-// if (state != null)
-// {
-//     state.Board.OutPut();
-// }
-//
-// else
-// {
-//     Console.WriteLine("Cutoff/failure");
-// }
-// if (state.cutoff)
-// {
-//     Console.WriteLine("Cutoff");
-// }else if (state.failure)
-// {
-//     Console.WriteLine("Failure");
-// }
-// else
-// {
-//     state.State.Board.OutPut();
-// }
-
-// LDFS.Search(beginState,100);
