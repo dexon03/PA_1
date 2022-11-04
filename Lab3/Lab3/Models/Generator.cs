@@ -1,20 +1,25 @@
 ﻿using Lab3.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Lab3.Models;
 
-public static class Generator
+public static class SeedData
 {
-    public static void GenerateDataToDb(IApplicationBuilder app)
+    public static void EnsurePopulated(IApplicationBuilder app)
     {
-        ApplicationDbContext dbContext = app.ApplicationServices.GetRequiredService<ApplicationDbContext>();
+        var serviceScope = app.ApplicationServices.CreateScope();
+        ApplicationDbContext dbContext = serviceScope.ServiceProvider.GetService<ApplicationDbContext>();
         dbContext.Database.Migrate();
-        if (dbContext.NodeValues.Count() != 0)
+        if (!dbContext.NodeValues.Any())
         {
             for (int i = 0; i < 10000; i++)
             {
                 dbContext.NodeValues.Add(new NodeValue{Value = Guid.NewGuid().ToString()});
             }
         }
+
+        dbContext.SaveChanges();
     }
 }

@@ -52,6 +52,8 @@ public class BTree
         }
     } 
     
+    // public void Delete
+    
     private void SplitChild(Node parrent,int nodeIdToSplit,Node nodeForSplit)
     {
         Node newNode = new Node(this.Degree);

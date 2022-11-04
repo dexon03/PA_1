@@ -2,7 +2,6 @@
 
 public class Node
 {
-    // public int numOfKeys;
     public int degree;
     public List<NodeValue> NodeValues { get; set; }
     public bool IsLeaf { get; set; }

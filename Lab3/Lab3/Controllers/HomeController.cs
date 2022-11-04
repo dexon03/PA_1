@@ -8,15 +8,22 @@ namespace Lab3.Controllers;
 public class HomeController : Controller
 {
     private ApplicationDbContext _db;
-
-    public HomeController(ApplicationDbContext db)
+    private BTree _bTree;
+    public HomeController(ApplicationDbContext db,BTree bTree)
     {
         _db = db;
+        _bTree = bTree;
     }
 
-    public IActionResult Index()
+    public string Index()
     {
-        return View();
+        if (_db.NodeValues.Count() > 0)
+        {
+            return "Not empty";
+        }
+
+        return "Empty";
+        // return View();
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
