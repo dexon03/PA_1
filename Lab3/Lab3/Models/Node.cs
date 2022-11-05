@@ -4,7 +4,6 @@ public class Node
 {
     public int degree;
     public List<NodeValue> NodeValues { get; set; }
-    public bool IsLeaf { get; set; }
     public List<Node> Children { get; set; }
 
     public Node(int degree)
@@ -12,6 +11,14 @@ public class Node
         this.degree = degree;
         NodeValues = new List<NodeValue>(this.degree);
         Children = new List<Node>(this.degree);
+    }
+
+    public bool IsLeaf
+    {
+        get
+        {
+            return !this.Children.Any();
+        }
     }
 
     public bool HasReachedMaxCountOfKeys

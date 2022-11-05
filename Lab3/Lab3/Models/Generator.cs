@@ -19,7 +19,6 @@ public static class SeedData
                 dbContext.NodeValues.Add(new NodeValue{Value = Guid.NewGuid().ToString()});
             }
         }
-
         dbContext.SaveChanges();
     }
 }

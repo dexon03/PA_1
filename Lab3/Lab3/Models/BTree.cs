@@ -5,16 +5,16 @@ namespace Lab3.Models;
 public class BTree
 {
     public int Degree { get; set; }
-    public Node Root { get; set; }
+    public Node Root { get; set; } = new Node(50);
 
     public BTree(ApplicationDbContext dbContext,int degree)
     {
         Degree = degree;
-        if (dbContext.NodeValues != null)
+        if (dbContext.NodeValues.Any())
         {
             foreach (var node in dbContext.NodeValues)
             {
-               this.BTreeInsert(node.NodeValueId,node.Value); 
+               BTreeInsert(node.NodeValueId,node.Value); 
             }
         }
     }
@@ -42,7 +42,6 @@ public class BTree
             Node oldRoot = this.Root;
             this.Root = new Node(this.Degree);
             this.Root.Children.Add(oldRoot);
-            this.Root.IsLeaf = false;
             this.SplitChild(this.Root,0,oldRoot);
             this.InsertNotFull(this.Root,id,value);
         }
@@ -62,7 +61,7 @@ public class BTree
         
         newNode.NodeValues.AddRange(nodeForSplit.NodeValues.GetRange(this.Degree,this.Degree -1));
         nodeForSplit.NodeValues.RemoveRange(this.Degree-1,this.Degree);
-        if (nodeForSplit.IsLeaf)
+        if (!nodeForSplit.IsLeaf)
         {
             newNode.Children.AddRange(nodeForSplit.Children.GetRange(this.Degree,this.Degree));
             nodeForSplit.Children.RemoveRange(this.Degree,this.Degree);
@@ -71,27 +70,19 @@ public class BTree
 
     private void InsertNotFull(Node node, int id, string value)
     {
-        int indexForInsert = 0;
-        while (indexForInsert <= node.NodeValues.Count && id > node.NodeValues[indexForInsert].NodeValueId)
-        {
-            indexForInsert++;
-        }
-
+        int indexForInsert = node.NodeValues.TakeWhile(node => id.CompareTo(node.NodeValueId) >= 0).Count();
         if (node.IsLeaf)
         {
-            node.NodeValues.Insert(indexForInsert, new NodeValue{NodeValueId = id,Value = value});
+            node.NodeValues.Insert(indexForInsert,new NodeValue(){NodeValueId = id,Value = value});
+            return;
         }
 
         Node child = node.Children[indexForInsert];
         if (child.HasReachedMaxCountOfKeys)
         {
-            this.SplitChild(node,indexForInsert,child);
-            if (id > node.NodeValues[indexForInsert].NodeValueId)
-            {
-                indexForInsert++;
-            }
+            SplitChild(node,indexForInsert,child);
+            if (id.CompareTo(node.NodeValues[indexForInsert].NodeValueId) > 0) indexForInsert++;
         }
-        
-        this.InsertNotFull(node.Children[indexForInsert],id,value);
+        InsertNotFull(node.Children[indexForInsert],id,value);
     }
 }
