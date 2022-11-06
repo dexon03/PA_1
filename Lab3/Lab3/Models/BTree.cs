@@ -49,10 +49,44 @@ public class BTree
         {
             this.InsertNotFull(this.Root,id,value);
         }
-    } 
-    
-    // public void Delete
-    
+    }
+
+    public void Delete(Node current, int id)
+    {
+        int indexForDelete = current.NodeValues.TakeWhile(node => id.CompareTo(node.NodeValueId) > 0).Count();
+        if (indexForDelete < current.NodeValues.Count &&
+            current.NodeValues[indexForDelete].NodeValueId.CompareTo(id) == 0)
+        {
+            DeleteValueFromNodeValues(current, id, indexForDelete);
+        }
+    }
+
+    private void DeleteValueFromNodeValues(Node node, int id, int indexForDelete)
+    {
+        if (node.IsLeaf)
+        {
+            node.NodeValues.RemoveAt(indexForDelete);
+            return;
+        }
+
+        Node predecessorChild = node.Children[indexForDelete];
+        if (predecessorChild.NodeValues.Count >= this.Degree)
+        {
+            
+        }
+    }
+
+    private NodeValue DeletePredecessor(Node node)
+    {
+        if (node.IsLeaf)
+        {
+            NodeValue result = node.NodeValues[^1];
+            node.NodeValues.RemoveAt(node.NodeValues.Count-1);
+            return result;
+        }
+
+        return DeletePredecessor(node.Children.Last());
+    }
     private void SplitChild(Node parrent,int nodeIdToSplit,Node nodeForSplit)
     {
         Node newNode = new Node(this.Degree);
@@ -84,5 +118,31 @@ public class BTree
             if (id.CompareTo(node.NodeValues[indexForInsert].NodeValueId) > 0) indexForInsert++;
         }
         InsertNotFull(node.Children[indexForInsert],id,value);
+    }
+
+    public List<NodeValue> ToList()
+    {
+        var nodes = new List<NodeValue>();
+        ToList(this.Root, nodes);
+        // nodes.Sort()
+        return nodes;
+    }
+
+    private void ToList(Node node, List<NodeValue> nodes)
+    {
+        int i = 0;
+        for (i = 0; i < node.NodeValues.Count; i++)
+        {
+            if (!node.IsLeaf)
+            {
+                ToList(node.Children[i], nodes);
+            }
+            nodes.Add(node.NodeValues[i]);
+        }
+
+        if (!node.IsLeaf)
+        {
+            ToList(node.Children[i],nodes);
+        }
     }
 }

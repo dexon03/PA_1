@@ -1,1 +1,17 @@
-﻿
+﻿@model IEnumerable<NodeValue>;
+
+<table>
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Value</th>
+    </tr>
+    </thead>
+    @foreach (var row in Model)
+    {
+        <tr>
+            <td>@row.NodeValueId</td>
+            <td>@row.Value</td>
+        </tr>
+    }
+</table>    

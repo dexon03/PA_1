@@ -16,8 +16,8 @@ public class HomeController : Controller
     }
 
     public IActionResult Index()
-    { 
-        return View(_db.NodeValues);
+    {
+        return View(_bTree.ToList());
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
