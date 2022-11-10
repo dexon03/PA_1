@@ -7,7 +7,7 @@ namespace Lab3.Models;
 
 public static class SeedData
 {
-    public static void EnsurePopulated(IApplicationBuilder app)
+    public static void Generate(IApplicationBuilder app)
     {
         var serviceScope = app.ApplicationServices.CreateScope();
         ApplicationDbContext dbContext = serviceScope.ServiceProvider.GetService<ApplicationDbContext>();
@@ -19,6 +19,15 @@ public static class SeedData
                 dbContext.NodeValues.Add(new NodeValue{Value = Guid.NewGuid().ToString()});
             }
         }
+        // ApplicationDbContext dbContext = app.ApplicationServices.GetRequiredService<ApplicationDbContext>();
+        // dbContext.Database.Migrate();
+        // if (!dbContext.NodeValues.Any())
+        // {
+        //     for (int i = 0; i < 10000; i++)
+        //     {
+        //         dbContext.NodeValues.Add(new NodeValue{Value = Guid.NewGuid().ToString()});
+        //     }
+        // }
         dbContext.SaveChanges();
     }
 }

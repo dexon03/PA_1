@@ -4,17 +4,20 @@ namespace Lab3.Models;
 
 public class BTree
 {
-    public int Degree { get; set; }
+    public int Degree { get; set; } = 50;
     public Node Root { get; set; } = new Node(50);
 
-    public BTree(ApplicationDbContext dbContext,int degree)
+    public BTree(IServiceScopeFactory _serviceScopeFactory)
     {
-        Degree = degree;
-        if (dbContext.NodeValues.Any())
+        using (var scope = _serviceScopeFactory.CreateScope())
         {
-            foreach (var node in dbContext.NodeValues)
+            ApplicationDbContext dbContext = scope.ServiceProvider.GetService<ApplicationDbContext>();
+            if (dbContext.NodeValues.Any())
             {
-               BTreeInsert(node.NodeValueId,node.Value); 
+                foreach (var node in dbContext.NodeValues)
+                {
+                    BTreeInsert(node); 
+                }
             }
         }
     }
@@ -35,7 +38,7 @@ public class BTree
         return current.IsLeaf ? null : BTreeSearch(current.Children[i], id);
     }
 
-    public void BTreeInsert(int id, string value)
+    public void BTreeInsert(NodeValue node)
     {
         if (this.Root.HasReachedMaxCountOfKeys)
         {
@@ -43,11 +46,11 @@ public class BTree
             this.Root = new Node(this.Degree);
             this.Root.Children.Add(oldRoot);
             this.SplitChild(this.Root,0,oldRoot);
-            this.InsertNotFull(this.Root,id,value);
+            this.InsertNotFull(this.Root,node.NodeValueId,node.Value);
         }
         else
         {
-            this.InsertNotFull(this.Root,id,value);
+            this.InsertNotFull(this.Root,node.NodeValueId,node.Value);
         }
     }
 
@@ -58,6 +61,12 @@ public class BTree
             current.NodeValues[indexForDelete].NodeValueId.CompareTo(id) == 0)
         {
             DeleteValueFromNodeValues(current, id, indexForDelete);
+            return;
+        }
+
+        if (!current.IsLeaf)
+        {
+            DeleteKeyFromSubtree(current,id,indexForDelete);    
         }
     }
 
@@ -72,7 +81,28 @@ public class BTree
         Node predecessorChild = node.Children[indexForDelete];
         if (predecessorChild.NodeValues.Count >= this.Degree)
         {
-            
+            NodeValue predecessor = this.DeletePredecessor(predecessorChild);
+            node.NodeValues[indexForDelete] = predecessor;
+        }
+        else
+        {
+            Node successorChild = node.Children[indexForDelete + 1];
+            if (successorChild.NodeValues.Count >= this.Degree)
+            {
+                NodeValue successor = DeleteSuccessor(successorChild);
+                node.NodeValues[indexForDelete] = successor;
+            }
+            else
+            {
+                predecessorChild.NodeValues.Add(node.NodeValues[indexForDelete]);
+                predecessorChild.NodeValues.AddRange(successorChild.NodeValues);
+                predecessorChild.Children.AddRange(successorChild.Children);
+                
+                node.NodeValues.RemoveAt(indexForDelete);
+                node.Children.RemoveAt(indexForDelete+1);
+                
+                Delete(predecessorChild,id);
+            }
         }
     }
 
@@ -85,8 +115,95 @@ public class BTree
             return result;
         }
 
+        
         return DeletePredecessor(node.Children.Last());
     }
+    
+    private NodeValue DeleteSuccessor(Node node)
+    {
+        if (node.IsLeaf)
+        {
+            NodeValue result = node.NodeValues[0];
+            node.NodeValues.RemoveAt(0);
+            return result;
+        }
+
+        return DeleteSuccessor(node.Children.First());
+    }
+
+    private void DeleteKeyFromSubtree(Node parentNode, int keyToDelete, int subtreeIndexInNode)
+    {
+        Node childNode = parentNode.Children[subtreeIndexInNode];
+
+        if (childNode.HasReachedMinCountOfKeys)
+        {
+            int leftIndex = subtreeIndexInNode - 1;
+            Node leftSibling = subtreeIndexInNode > 0 ? parentNode.Children[leftIndex] : null;
+
+            int rightIndex = subtreeIndexInNode + 1;
+            Node rightSibling = subtreeIndexInNode < parentNode.Children.Count - 1
+                ? parentNode.Children[rightIndex]
+                : null;
+
+            if (leftSibling != null && leftSibling.NodeValues.Count > this.Degree - 1)
+            {
+                childNode.NodeValues.Insert(0, parentNode.NodeValues[subtreeIndexInNode]);
+                parentNode.NodeValues[subtreeIndexInNode] = leftSibling.NodeValues.Last();
+                leftSibling.NodeValues.RemoveAt(leftSibling.NodeValues.Count - 1);
+
+                if (!leftSibling.IsLeaf)
+                {
+                    childNode.Children.Insert(0, leftSibling.Children.Last());
+                    leftSibling.Children.RemoveAt(leftSibling.Children.Count - 1);
+                }
+            }
+            else if (rightSibling != null && rightSibling.NodeValues.Count > this.Degree - 1)
+            {
+                childNode.NodeValues.Add(parentNode.NodeValues[subtreeIndexInNode]);
+                parentNode.NodeValues[subtreeIndexInNode] = rightSibling.NodeValues.First();
+                rightSibling.NodeValues.RemoveAt(0);
+
+                if (!rightSibling.IsLeaf)
+                {
+                    childNode.Children.Add(rightSibling.Children.First());
+                    rightSibling.Children.RemoveAt(0);
+                }
+            }
+            else
+            {
+                if (leftSibling != null)
+                {
+                    childNode.NodeValues.Insert(0, parentNode.NodeValues[subtreeIndexInNode]);
+                    var oldNodeValues = childNode.NodeValues;
+                    childNode.NodeValues = leftSibling.NodeValues;
+                    childNode.NodeValues.AddRange(oldNodeValues);
+                    if (!leftSibling.IsLeaf)
+                    {
+                        var oldChildren = childNode.Children;
+                        childNode.Children = leftSibling.Children;
+                        childNode.Children.AddRange(oldChildren);
+                    }
+
+                    parentNode.Children.RemoveAt(leftIndex);
+                    parentNode.NodeValues.RemoveAt(subtreeIndexInNode);
+                }
+                else
+                {
+                    childNode.NodeValues.Add(parentNode.NodeValues[subtreeIndexInNode]);
+                    childNode.NodeValues.AddRange(rightSibling.NodeValues);
+                    if (!rightSibling.IsLeaf)
+                    {
+                        childNode.Children.AddRange(rightSibling.Children);
+                    }
+
+                    parentNode.Children.RemoveAt(rightIndex);
+                    parentNode.NodeValues.RemoveAt(subtreeIndexInNode);
+                }
+            }
+        }
+        this.Delete(childNode, keyToDelete);
+    }
+
     private void SplitChild(Node parrent,int nodeIdToSplit,Node nodeForSplit)
     {
         Node newNode = new Node(this.Degree);
@@ -124,7 +241,6 @@ public class BTree
     {
         var nodes = new List<NodeValue>();
         ToList(this.Root, nodes);
-        // nodes.Sort()
         return nodes;
     }
 

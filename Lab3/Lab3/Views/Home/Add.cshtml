@@ -1,0 +1,13 @@
+@model NodeValue
+
+<form method="post" asp-action="Add" class="form">
+    <div class="form-group">
+        <label asp-for="NodeValueId">Id </label>
+        <input asp-for="NodeValueId" class="form-control"/>
+    </div>
+    <div class="form-group">
+        <label asp-for="Value">Value </label>
+        <input asp-for="Value" class="form-control"/>
+    </div>
+    <button type="submit">Submit</button>
+</form>
