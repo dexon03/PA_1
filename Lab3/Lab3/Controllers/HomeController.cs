@@ -36,7 +36,7 @@ public class HomeController : Controller
 
     public IActionResult Remove(int id)
     {
-        _bTree.Delete(_bTree.Root,id);
+        // _bTree.Remove(id);
         return RedirectToAction(nameof(Index));
     }
     
