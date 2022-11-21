@@ -34,6 +34,10 @@ namespace Lab4
                 Chromosome Offspring = CrossOver(FirstParent, SecondParent);
                 Chromosome mutation = Mutation(Offspring);
                 Chromosome improved = LocalImprovement(mutation);
+                if(improved.GetValue > Record.GetValue)
+                {
+                    Record= improved;
+                }
                 Chromosome worstChromo = population.GetTheWorstChromosome;
                 if (improved.GetWeight <= backPack.Capacity)
                 {
@@ -52,6 +56,10 @@ namespace Lab4
                     {
                         continue;
                     }
+                }
+                if(iterations%20==0)
+                {
+                    WriteRecordToFile(iterations, Record.GetValue);
                 }
                 iterations++;
             }
@@ -113,6 +121,13 @@ namespace Lab4
                 }
             }
             return chromosome;
+        }
+        private static void WriteRecordToFile(int iteration,int value)
+        {
+            using(var stream = new StreamWriter("records.txt", true))
+            {
+                stream.WriteLine(value);
+            }
         }
     }
 }
