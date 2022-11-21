@@ -29,4 +29,29 @@ public class Node
     {
         get { return this.NodeValues.Count == (this.degree  - 1);}  
     }
+
+    public int Find(int id)
+    {
+        for (int i = 0; i < this.NodeValues.Count; i++)
+        {
+            if (this.NodeValues[i].NodeValueId == id)
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    public Node FindChildForKey(int key)
+    {
+        for (int i = 0; i < NodeValues.Count-1; i++)
+        {
+            if (NodeValues[i].NodeValueId < key && NodeValues[i+1].NodeValueId > key)
+            {
+                return Children[i + 1];
+            }
+        }
+
+        return Children[^1];
+    }
 }

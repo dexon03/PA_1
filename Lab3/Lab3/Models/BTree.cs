@@ -22,20 +22,38 @@ public class BTree
         }
     }
 
-    public NodeValue? BTreeSearch(Node current,int id)
+    public NodeValue? BTreeSearch(Node current,int key)
     {
-        int i = 0;
-        while (i <= current.NodeValues.Count && id > current.NodeValues[i].NodeValueId)
+        var node = SearchNode(current, key);
+        if (node is null) return null;
+        return BinarySearch(node, key);
+    }
+
+    private Node? SearchNode(Node node, int key)
+    {
+        if (node.Find(key) != -1) return node;
+        if (node.IsLeaf) return null;
+        var nextNode = node.FindChildForKey(key);
+        return SearchNode(nextNode, key);
+
+    }
+    
+    private NodeValue? BinarySearch(Node node, int key)
+    {
+        int high = node.NodeValues.Count;
+        int low = 0;
+        while (low <= high)
         {
-            i++;
+            int mid = (low + high) / 2;
+            if (node.NodeValues[mid].NodeValueId == key) return node.NodeValues[mid];
+            if (node.NodeValues[mid].NodeValueId > key) low = mid + 1;
+            else
+            {
+                high = mid - 1;
+            }
         }
 
-        if (i <= current.NodeValues.Count && id == current.NodeValues[i].NodeValueId)
-        {
-            return current.NodeValues[i];
-        }
-
-        return current.IsLeaf ? null : BTreeSearch(current.Children[i], id);
+        return null;
     }
 
     public void BTreeInsert(NodeValue node)
@@ -52,156 +70,6 @@ public class BTree
         {
             this.InsertNotFull(this.Root,node.NodeValueId,node.Value);
         }
-    }
-
-    public void Delete(Node current, int id)
-    {
-        int indexForDelete = current.NodeValues.TakeWhile(node => id.CompareTo(node.NodeValueId) > 0).Count();
-        if (indexForDelete < current.NodeValues.Count &&
-            current.NodeValues[indexForDelete].NodeValueId.CompareTo(id) == 0)
-        {
-            DeleteValueFromNodeValues(current, id, indexForDelete);
-            return;
-        }
-
-        if (!current.IsLeaf)
-        {
-            DeleteKeyFromSubtree(current,id,indexForDelete);    
-        }
-    }
-
-    private void DeleteValueFromNodeValues(Node node, int id, int indexForDelete)
-    {
-        if (node.IsLeaf)
-        {
-            node.NodeValues.RemoveAt(indexForDelete);
-            return;
-        }
-
-        Node predecessorChild = node.Children[indexForDelete];
-        if (predecessorChild.NodeValues.Count >= this.Degree)
-        {
-            NodeValue predecessor = this.DeletePredecessor(predecessorChild);
-            node.NodeValues[indexForDelete] = predecessor;
-        }
-        else
-        {
-            Node successorChild = node.Children[indexForDelete + 1];
-            if (successorChild.NodeValues.Count >= this.Degree)
-            {
-                NodeValue successor = DeleteSuccessor(successorChild);
-                node.NodeValues[indexForDelete] = successor;
-            }
-            else
-            {
-                predecessorChild.NodeValues.Add(node.NodeValues[indexForDelete]);
-                predecessorChild.NodeValues.AddRange(successorChild.NodeValues);
-                predecessorChild.Children.AddRange(successorChild.Children);
-                
-                node.NodeValues.RemoveAt(indexForDelete);
-                node.Children.RemoveAt(indexForDelete+1);
-                
-                Delete(predecessorChild,id);
-            }
-        }
-    }
-
-    private NodeValue DeletePredecessor(Node node)
-    {
-        if (node.IsLeaf)
-        {
-            NodeValue result = node.NodeValues[^1];
-            node.NodeValues.RemoveAt(node.NodeValues.Count-1);
-            return result;
-        }
-
-        
-        return DeletePredecessor(node.Children.Last());
-    }
-    
-    private NodeValue DeleteSuccessor(Node node)
-    {
-        if (node.IsLeaf)
-        {
-            NodeValue result = node.NodeValues[0];
-            node.NodeValues.RemoveAt(0);
-            return result;
-        }
-
-        return DeleteSuccessor(node.Children.First());
-    }
-
-    private void DeleteKeyFromSubtree(Node parentNode, int keyToDelete, int subtreeIndexInNode)
-    {
-        Node childNode = parentNode.Children[subtreeIndexInNode];
-
-        if (childNode.HasReachedMinCountOfKeys)
-        {
-            int leftIndex = subtreeIndexInNode - 1;
-            Node leftSibling = subtreeIndexInNode > 0 ? parentNode.Children[leftIndex] : null;
-
-            int rightIndex = subtreeIndexInNode + 1;
-            Node rightSibling = subtreeIndexInNode < parentNode.Children.Count - 1
-                ? parentNode.Children[rightIndex]
-                : null;
-
-            if (leftSibling != null && leftSibling.NodeValues.Count > this.Degree - 1)
-            {
-                childNode.NodeValues.Insert(0, parentNode.NodeValues[subtreeIndexInNode]);
-                parentNode.NodeValues[subtreeIndexInNode] = leftSibling.NodeValues.Last();
-                leftSibling.NodeValues.RemoveAt(leftSibling.NodeValues.Count - 1);
-
-                if (!leftSibling.IsLeaf)
-                {
-                    childNode.Children.Insert(0, leftSibling.Children.Last());
-                    leftSibling.Children.RemoveAt(leftSibling.Children.Count - 1);
-                }
-            }
-            else if (rightSibling != null && rightSibling.NodeValues.Count > this.Degree - 1)
-            {
-                childNode.NodeValues.Add(parentNode.NodeValues[subtreeIndexInNode]);
-                parentNode.NodeValues[subtreeIndexInNode] = rightSibling.NodeValues.First();
-                rightSibling.NodeValues.RemoveAt(0);
-
-                if (!rightSibling.IsLeaf)
-                {
-                    childNode.Children.Add(rightSibling.Children.First());
-                    rightSibling.Children.RemoveAt(0);
-                }
-            }
-            else
-            {
-                if (leftSibling != null)
-                {
-                    childNode.NodeValues.Insert(0, parentNode.NodeValues[subtreeIndexInNode]);
-                    var oldNodeValues = childNode.NodeValues;
-                    childNode.NodeValues = leftSibling.NodeValues;
-                    childNode.NodeValues.AddRange(oldNodeValues);
-                    if (!leftSibling.IsLeaf)
-                    {
-                        var oldChildren = childNode.Children;
-                        childNode.Children = leftSibling.Children;
-                        childNode.Children.AddRange(oldChildren);
-                    }
-
-                    parentNode.Children.RemoveAt(leftIndex);
-                    parentNode.NodeValues.RemoveAt(subtreeIndexInNode);
-                }
-                else
-                {
-                    childNode.NodeValues.Add(parentNode.NodeValues[subtreeIndexInNode]);
-                    childNode.NodeValues.AddRange(rightSibling.NodeValues);
-                    if (!rightSibling.IsLeaf)
-                    {
-                        childNode.Children.AddRange(rightSibling.Children);
-                    }
-
-                    parentNode.Children.RemoveAt(rightIndex);
-                    parentNode.NodeValues.RemoveAt(subtreeIndexInNode);
-                }
-            }
-        }
-        this.Delete(childNode, keyToDelete);
     }
 
     private void SplitChild(Node parrent,int nodeIdToSplit,Node nodeForSplit)
