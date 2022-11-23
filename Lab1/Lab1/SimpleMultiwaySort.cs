@@ -4,20 +4,20 @@ public class SimpleMultiwaySort
 {
     public string PathToAFolder { get; }
     public int Size { get; set; }
-    public List<string> Filelist { get; set; }
+    public List<string> FileList { get; set; }
     
 
     public SimpleMultiwaySort(string path, int size)
     {
         PathToAFolder = path;
         Size = size;
-        Filelist = new List<string>();
+        FileList = new List<string>();
     }
     public void GenerateFile()
     {
         Random random = new Random();
         using BinaryWriter binaryWriter = new BinaryWriter(File.Open(PathToAFolder + "A.bin" , FileMode.Create));
-        for (int i = 0; i < Size; i++)
+        for (int i = 0; i < Size/8; i++)
         {
             binaryWriter.Write(random.NextInt64(1,1000000));
         }
@@ -64,7 +64,7 @@ public class SimpleMultiwaySort
                 {
                     binaryWriter.Write(ele);
                 }
-                Filelist.Add($"B{i+1}.bin");
+                FileList.Add($"B{i+1}.bin");
             }
         }
 
@@ -72,7 +72,7 @@ public class SimpleMultiwaySort
         {
             using (BinaryWriter binaryWriter = new BinaryWriter(File.Open(PathToAFolder + $"C{i+1}.bin", FileMode.Create)) )
             {
-                Filelist.Add($"C{i+1}.bin");
+                FileList.Add($"C{i+1}.bin");
             }
         }
     }
@@ -84,7 +84,7 @@ public class SimpleMultiwaySort
         {
             for (int i = 0; i < n; i++)
             {
-                using (BinaryReader binaryReader = new BinaryReader(File.Open(PathToAFolder + $"{Filelist[i]}", FileMode.Open)) )
+                using (BinaryReader binaryReader = new BinaryReader(File.Open(PathToAFolder + $"{FileList[i]}", FileMode.Open)) )
                 {
                     if (binaryReader.BaseStream.Length != 0)
                     {
@@ -102,7 +102,7 @@ public class SimpleMultiwaySort
         {
             for (int i = n; i < 2*n; i++)
             {
-                using (BinaryReader binaryReader = new BinaryReader(File.Open(PathToAFolder + $"{Filelist[i]}", FileMode.Open)) )
+                using (BinaryReader binaryReader = new BinaryReader(File.Open(PathToAFolder + $"{FileList[i]}", FileMode.Open)) )
                 {
                     if (binaryReader.BaseStream.Length != 0)
                     {
@@ -125,11 +125,11 @@ public class SimpleMultiwaySort
         while (true)
         {
             FileInfo[] files = {
-                new FileInfo(PathToAFolder + Filelist[0]),
-                new FileInfo(PathToAFolder + Filelist[n])
+                new FileInfo(PathToAFolder + FileList[0]),
+                new FileInfo(PathToAFolder + FileList[n])
             };
             // ReSharper disable once ComplexConditionExpression
-            if (Size*8 == files[0].Length || Size*8 == files[1].Length) break;
+            if (Size == files[0].Length || Size == files[1].Length) break;
 
             List<Queue<long>> listsFromFiles = ReadFiles(check,n);
             // if (inputArr.Count == listsFromFiles[0].Count) break;
@@ -139,7 +139,7 @@ public class SimpleMultiwaySort
         }
     }
 
-    private void Merge(int check,int n, List<Queue<long>> list)
+    private void Merge(int check,int n, List<Queue<long>> listFromFiles)
     {
         List<long> series = new List<long>();
         string fileName;
@@ -149,16 +149,16 @@ public class SimpleMultiwaySort
         }
         else fileName = "B";
         int fileNumber = 1;
-        while (!isEmpty(list))
+        while (!isEmpty(listFromFiles))
         {
             var minValue = long.MaxValue;
             int? minIndex = null;
             //searching minimal element from series
-            for (int i = 0; i < list.Count; i++)
+            for (int i = 0; i < listFromFiles.Count; i++)
             {
-                if (list[i].Count != 0)
+                if (listFromFiles[i].Count != 0)
                 {
-                    long tmp = list[i].Peek();
+                    long tmp = listFromFiles[i].Peek();
                     if (series.Count == 0 || tmp >= series.Last()) // check if series is empty, then first minimal will be added to series else check if current element is bigger than last elements in series and lower than current minimal
                     {
                         if (tmp <= minValue)
@@ -185,7 +185,7 @@ public class SimpleMultiwaySort
             //else add minimum to series
             else
             {
-                series.Add(list[(int)minIndex].Dequeue());
+                series.Add(listFromFiles[(int)minIndex].Dequeue());
             }
         }
         // add to file last found series
@@ -233,7 +233,7 @@ public class SimpleMultiwaySort
 
     public void OutPut()
     {
-        foreach (var file in Filelist)
+        foreach (var file in FileList)
         {
             int countOfElements = 0;
             using (BinaryReader binaryReader = new BinaryReader(File.Open(PathToAFolder + file, FileMode.Open)))
