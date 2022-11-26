@@ -44,13 +44,14 @@ public class Node
 
     public Node FindChildForKey(int key)
     {
-        for (int i = 0; i < NodeValues.Count-1; i++)
+        for (int i = 0; i < NodeValues.Count; i++)
         {
-            if (NodeValues[i].NodeValueId < key && NodeValues[i+1].NodeValueId > key)
+            if (NodeValues[i].NodeValueId > key)
             {
-                return Children[i + 1];
+                return Children[i];
             }
         }
+
 
         return Children[^1];
     }

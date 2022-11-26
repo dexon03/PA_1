@@ -26,7 +26,7 @@ public class BTree
     {
         var node = SearchNode(current, key);
         if (node is null) return null;
-        return BinarySearch(node, key);
+        return BinarySearch(node.NodeValues, key);
     }
 
     
@@ -39,16 +39,16 @@ public class BTree
 
     }
     
-    private NodeValue? BinarySearch(Node node, int key)
+    private NodeValue? BinarySearch(List<NodeValue> nodeValues, int key)
     {
-        int high = node.NodeValues.Count;
+        int high = nodeValues.Count-1;
         int low = 0;
         while (low <= high)
         {
-            int mid = (low + high) / 2;
-            if (node.NodeValues[mid].NodeValueId == key) return node.NodeValues[mid];
-            if (node.NodeValues[mid].NodeValueId > key) low = mid + 1;
-            else
+            var mid = (int)Math.Floor((double)(low + (high - low) / 2));
+            if (nodeValues[mid].NodeValueId == key) return nodeValues[mid];
+            if (nodeValues[mid].NodeValueId < key) low = mid + 1;
+            else if (nodeValues[mid].NodeValueId > key)
             {
                 high = mid - 1;
             }

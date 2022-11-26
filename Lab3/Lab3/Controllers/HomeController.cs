@@ -30,10 +30,31 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult Add(NodeValue node)
     {
+        var treeList = _bTree.ToList();
+        var checkNode = treeList.FirstOrDefault(u => u.NodeValueId == node.NodeValueId);
+        if (checkNode != null)
+        {
+            return View("ErrorAdd","Node with this value already exist");
+        }
         this._bTree.BTreeInsert(node);
         return RedirectToAction(nameof(Index));
     }
 
+    public IActionResult SearchNode()
+    {
+        return View(new NodeValue());
+    }
+
+    [HttpPost]
+    public IActionResult SearchNode(NodeValue node)
+    {
+        var result = _bTree.BTreeSearch(_bTree.Root, node.NodeValueId);
+        if (result != null)
+        {
+            return View(result);
+        }
+        else return View("ErrorAdd","Node isn't found");
+    }
     public IActionResult Remove(int id)
     {
         // _bTree.Remove(id);
@@ -57,8 +78,7 @@ public class HomeController : Controller
     // {
     //     return RedirectToAction(nameof(Index));
     // }
-    
-    
+
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
