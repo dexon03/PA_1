@@ -20,8 +20,7 @@ public class HomeController : Controller
     {
         return View(_bTree.ToList());
     }
-
-
+    
     public IActionResult Add()
     {
         return View(new NodeValue());
@@ -44,7 +43,7 @@ public class HomeController : Controller
     {
         return View(new NodeValue());
     }
-
+    
     [HttpPost]
     public IActionResult SearchNode(NodeValue node)
     {
@@ -57,28 +56,17 @@ public class HomeController : Controller
     }
     public IActionResult Remove(int id)
     {
-        // _bTree.Remove(id);
+        _bTree.DeleteNode(id);
         return RedirectToAction(nameof(Index));
     }
-    
-    // [HttpPost]
-    // public IActionResult Remove(int id)
-    // {
-    //     _bTree.Delete(_bTree.Root,id);
-    //     return RedirectToAction(nameof(Index));
-    // }
-    //
-    // public IActionResult Search()
-    // {
-    //     return View();
-    // }
-    //
-    // [HttpPost]
-    // public IActionResult Search(int id)
-    // {
-    //     return RedirectToAction(nameof(Index));
-    // }
 
+    public IActionResult SaveToDb()
+    {
+        _dbContext.NodeValues.RemoveRange(_dbContext.NodeValues);
+        _dbContext.NodeValues.AddRange(_bTree.ToList());
+        _dbContext.SaveChanges();
+        return RedirectToAction(nameof(Index));
+    }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
