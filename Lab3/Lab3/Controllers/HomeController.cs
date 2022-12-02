@@ -15,17 +15,14 @@ public class HomeController : Controller
         _bTree = bTree;
 
     }
-
     public IActionResult Index()
     {
         return View(_bTree.ToList());
     }
-    
     public IActionResult Add()
     {
         return View(new NodeValue());
     }
-
     [HttpPost]
     public IActionResult Add(NodeValue node)
     {
@@ -33,12 +30,11 @@ public class HomeController : Controller
         var checkNode = treeList.FirstOrDefault(u => u.NodeValueId == node.NodeValueId);
         if (checkNode != null)
         {
-            return View("ErrorAdd","Node with this value already exist");
+            return View("ErrorAdd","Node with this id already exist");
         }
         this._bTree.BTreeInsert(node);
         return RedirectToAction(nameof(Index));
     }
-
     public IActionResult SearchNode()
     {
         return View(new NodeValue());
@@ -47,9 +43,12 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult SearchNode(NodeValue node)
     {
-        var result = _bTree.BTreeSearch(_bTree.Root, node.NodeValueId);
+        int _countOfComparsion = 0;
+        var result = _bTree.BTreeSearch(node.NodeValueId, ref _countOfComparsion);
         if (result != null)
         {
+            ViewBag.CountOfComparsion = _countOfComparsion;
+            
             return View(result);
         }
         else return View("ErrorAdd","Node isn't found");
@@ -60,6 +59,21 @@ public class HomeController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    public IActionResult Edit(int id)
+    {
+        int countOfComparsion = 0;
+        var node = _bTree.BTreeSearch(id,ref countOfComparsion);
+        if (node is null) return NotFound();
+        
+        return View(node);
+    }
+    [HttpPost]
+    public IActionResult Edit(NodeValue nodeValue)
+    {
+        _bTree.Edit(nodeValue);
+        return RedirectToAction(nameof(Index));
+    }
+    
     public IActionResult SaveToDb()
     {
         _dbContext.NodeValues.RemoveRange(_dbContext.NodeValues);

@@ -6,7 +6,6 @@ public class Node
     public List<NodeValue> NodeValues { get; set; }
     public List<Node> Children { get; set; }
     public Node? Parent { get; set; }
-
     public Node(int degree)
     {
         this.degree = degree;
@@ -17,7 +16,6 @@ public class Node
             child.Parent = this;
         }
     }
-
     public bool IsLeaf
     {
         get
@@ -25,20 +23,15 @@ public class Node
             return !this.Children.Any();
         }
     }
-
     public bool HasReachedMaxCountOfKeys
     {
         get { return this.NodeValues.Count == ((this.degree * 2) - 1);}  
     }
-    public bool HasReachedMinCountOfKeys
-    {
-        get { return this.NodeValues.Count == (this.degree  - 1);}  
-    }
-
-    public int Find(int id)
+    public int Find(int id, ref int countOfComparsion)
     {
         for (int i = 0; i < this.NodeValues.Count; i++)
         {
+            countOfComparsion++;
             if (this.NodeValues[i].NodeValueId == id)
             {
                 return i;

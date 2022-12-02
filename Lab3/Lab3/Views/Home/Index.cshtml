@@ -19,6 +19,7 @@
         <tr>
             <td>@row.NodeValueId</td>
             <td>@row.Value</td>
+            <td><a asp-controller="Home" asp-route-Id="@row.NodeValueId" asp-action="Edit" class="btn mx2 btn-info">Edit</a></td>
             <td><a asp-controller="Home" asp-route-Id="@row.NodeValueId" asp-action="Remove" class="btn btn-danger mx2">Remove</a></td>
         </tr>
     }

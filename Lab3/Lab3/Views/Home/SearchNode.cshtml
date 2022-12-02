@@ -19,12 +19,13 @@ else
             <label>Id </label>
             <input asp-for="NodeValueId" class="form-control" value="@Model.NodeValueId"/>
         </div>
-         <div class="form-group">
-                <label>Value </label>
-                <span class="form-control">@Model.Value</span>
-            </div>
+        <div class="form-group">
+            <label>Value </label>
+            <span class="form-control">@Model.Value</span>
+        </div>
         <button type="submit">Submit</button>
     </form>
+    <h2 class="text-primary">Count of compersion: @ViewBag.CountOfComparsion</h2>
     <a asp-action="Index" class="btn-primary fs-2" >Back to main page</a>
 }
 

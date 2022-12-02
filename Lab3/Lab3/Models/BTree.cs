@@ -5,7 +5,7 @@ namespace Lab3.Models;
 public class BTree
 {
     private int Degree { get; set; } = 50;
-    public Node Root { get; set; } = new Node(50);
+    public Node Root { get; set; } = new (50);
 
     public BTree(IServiceScopeFactory _serviceScopeFactory)
     {
@@ -22,38 +22,47 @@ public class BTree
         }
     }
 
-    public NodeValue? BTreeSearch(Node current,int key)
+    public NodeValue? BTreeSearch(int key,ref int countOfComparsion)
     {
-        var node = SearchNode(current, key);
+        var node = SearchNode(Root, key, ref countOfComparsion);
         if (node is null) return null;
-        return BinarySearch(node.NodeValues, key);
+        return BinarySearch(node.NodeValues, key, ref countOfComparsion);
     }
 
     
-    private Node? SearchNode(Node node, int key)
+    private Node? SearchNode(Node node, int key, ref int countOfComparsion )
     {
-        if (node.Find(key) != -1) return node;
+        if (node.Find(key,ref countOfComparsion) != -1) return node;
         if (node.IsLeaf) return null;
         var nextNode = node.FindChildForKey(key);
-        return SearchNode(nextNode, key);
+        return SearchNode(nextNode, key, ref countOfComparsion);
 
     }
     
-    private NodeValue? BinarySearch(List<NodeValue> nodeValues, int key)
+    private NodeValue? BinarySearch(List<NodeValue> nodeValues, int key, ref int countOfComparsion)
     {
         int high = nodeValues.Count-1;
         int low = 0;
         while (low <= high)
         {
             var mid = (int)Math.Floor((double)(low + (high - low) / 2));
-            if (nodeValues[mid].NodeValueId == key) return nodeValues[mid];
-            if (nodeValues[mid].NodeValueId < key) low = mid + 1;
+
+            if (nodeValues[mid].NodeValueId == key)
+            {
+                countOfComparsion++;
+                return nodeValues[mid];
+            }
+            if (nodeValues[mid].NodeValueId < key)
+            {
+                countOfComparsion++;
+                low = mid + 1;
+            }
             else if (nodeValues[mid].NodeValueId > key)
             {
+                countOfComparsion++;
                 high = mid - 1;
             }
         }
-
         return null;
     }
 
@@ -139,7 +148,8 @@ public class BTree
 
     public void DeleteNode(int key)
     {
-        var node = SearchNode(Root, key);
+        int countOfComparsion = 0;
+        var node = SearchNode(Root, key,ref countOfComparsion);
         if (node.IsLeaf)
         {
             RemoveNodeFromLeaf(node,key);
@@ -153,7 +163,8 @@ public class BTree
     
     private void RemoveNodeFromLeaf(Node node, int key)
     {
-        var nodeValueForRemove = BinarySearch(node.NodeValues, key);
+        int countOfComparsion = 0;
+        var nodeValueForRemove = BinarySearch(node.NodeValues, key,ref countOfComparsion);
         node.NodeValues.Remove(nodeValueForRemove);
         RestorePropertyDelete(node);
     }
@@ -293,5 +304,13 @@ public class BTree
             node.NodeValues.Add(parentKey);
             node.NodeValues.AddRange(right.NodeValues);
         }
+    }
+
+    public void Edit(NodeValue nodeValue)
+    {
+        int countOfComparsion = 0;
+        var node = SearchNode(Root, nodeValue.NodeValueId, ref countOfComparsion);
+        var nodeForEdit = BinarySearch(node.NodeValues, nodeValue.NodeValueId,ref countOfComparsion);
+        if (nodeForEdit != null) nodeForEdit.Value = nodeValue.Value;
     }
 }
