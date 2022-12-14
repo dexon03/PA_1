@@ -32,36 +32,33 @@ public class BTree
     
     private Node? SearchNode(Node node, int key, ref int countOfComparsion )
     {
-        if (node.Find(key,ref countOfComparsion) != -1) return node;
+        if (node.Find(key) != -1) return node;
         if (node.IsLeaf) return null;
-        var nextNode = node.FindChildForKey(key);
+        var nextNode = node.FindChildForKey(key,ref countOfComparsion);
         return SearchNode(nextNode, key, ref countOfComparsion);
 
     }
     
     private NodeValue? BinarySearch(List<NodeValue> nodeValues, int key, ref int countOfComparsion)
     {
-        int high = nodeValues.Count-1;
-        int low = 0;
-        while (low <= high)
+        int position = (nodeValues.Count-1) / 2;
+        int step = position;
+        while (step > 0)
         {
-            var mid = (int)Math.Floor((double)(low + (high - low) / 2));
-
-            if (nodeValues[mid].NodeValueId == key)
+            step = (int)Math.Ceiling((decimal)step / 2);
+            countOfComparsion++;
+            if (nodeValues[position].NodeValueId == key)
             {
-                countOfComparsion++;
-                return nodeValues[mid];
+                return nodeValues[position];
             }
-            if (nodeValues[mid].NodeValueId < key)
+            countOfComparsion++;
+            if (nodeValues[position].NodeValueId > key)
             {
-                countOfComparsion++;
-                low = mid + 1;
+                position -= step;
+            }else if(nodeValues[position].NodeValueId < key){
+                position += step;
             }
-            else if (nodeValues[mid].NodeValueId > key)
-            {
-                countOfComparsion++;
-                high = mid - 1;
-            }
+            countOfComparsion++;
         }
         return null;
     }
@@ -171,7 +168,8 @@ public class BTree
 
     private void RemoveNodeFromNonLeaf(Node node,int key)
     {
-        var leftChild = node.FindChildForKey(key);
+        int countOfCompersion = 0;
+        var leftChild = node.FindChildForKey(key,ref countOfCompersion);
         if (leftChild.NodeValues.Count > Degree - 1)
         {
             var predecessor = GetPredecessor(leftChild);

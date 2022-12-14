@@ -27,11 +27,10 @@ public class Node
     {
         get { return this.NodeValues.Count == ((this.degree * 2) - 1);}  
     }
-    public int Find(int id, ref int countOfComparsion)
+    public int Find(int id)
     {
         for (int i = 0; i < this.NodeValues.Count; i++)
         {
-            countOfComparsion++;
             if (this.NodeValues[i].NodeValueId == id)
             {
                 return i;
@@ -40,10 +39,11 @@ public class Node
         return -1;
     }
 
-    public Node FindChildForKey(int key)
+    public Node FindChildForKey(int key,ref int countOfComparsion)
     {
         for (int i = 0; i < NodeValues.Count; i++)
         {
+            countOfComparsion++;
             if (NodeValues[i].NodeValueId > key)
             {
                 return Children[i];
